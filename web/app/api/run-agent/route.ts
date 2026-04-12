@@ -1,124 +1,148 @@
-import { NextResponse } from "next/server";
-import OpenAI from "openai";
+import { NextResponse } from 'next/server'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+type Action = 'get_leads' | 'create_lead' | 'update_email' | 'delete_lead' | 'send_email'
 
-const MAX_STEPS = 5;
+function resolveActionFromGoal(goal: string): Action {
+  const input = goal.toLowerCase()
 
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const userInput = body.input;
+  let action: Action = 'get_leads'
 
-    let messages: any[] = [
-      {
-        role: "system",
-        content: `You are Pilo — an AI CRM automation agent.
+  if (
+    input.includes('create') ||
+    input.includes('add lead') ||
+    input.includes('new lead')
+  ) {
+    action = 'create_lead'
+  } else if (input.includes('update email') || input.includes('change email')) {
+    action = 'update_email'
+  } else if (input.includes('delete') || input.includes('remove lead')) {
+    action = 'delete_lead'
+  } else if (
+    input.includes('get leads') ||
+    input.includes('show leads') ||
+    input.includes('list leads')
+  ) {
+    action = 'get_leads'
+  } else if (input.includes('send email') || input.includes('mail to')) {
+    action = 'send_email'
+  }
 
-You follow a strict ReAct loop:
-Reason → Act → Observe
+  console.log('Resolved action:', action)
 
-You MUST always extract parameters from user input.
-
-vailable actions:
-- create_lead (name, email)
-- get_leads (name REQUIRED)
-- update_email (name, new_email)
-- delete_lead (name)
-- send_email (email, message)
-- create new row in a table.
-
-Rules:
-- Always return JSON
-- Max 5 steps
-- After each action, wait for observation
-- When task is complete, return action: "finish"
-- Always use "update_email" action for updates
-- Always include "name" and "email" in parameters
-
-If action is "send_email":
-Return parameters:
-{
-  "email": "<recipient email>",
-  "message": "<email content>"
+  return action
 }
 
-Output format:
-{
-  "action": "...",
-  "parameters": {},
-  "reasoning": "...",
-  "step": 1
-}`
-      },
-      {
-        role: "user",
-        content: userInput
-      }
-    ];
+function extractLeadData(input: string): {
+  name: string | null
+  email: string | null
+  company: string | null
+} {
+  const nameMatch = input.match(/name:\s*([^,]+)/i)
+  const emailMatch = input.match(/email:\s*([^,]+)/i)
+  const companyMatch = input.match(/company:\s*([^,]+)/i)
 
-    let step = 1;
-    let lastResult: any = null;
+  const name = nameMatch ? nameMatch[1].trim() : null
+  const email = emailMatch ? emailMatch[1].trim() : null
+  const company = companyMatch ? companyMatch[1].trim() : null
 
-    while (step <= MAX_STEPS) {
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        temperature: 0,
-        messages,
-      });
+  return { name, email, company }
+}
 
-      const content = response.choices[0].message.content;
-      const parsed = JSON.parse(content || "{}");
+function extractUpdateEmailData(input: string): {
+  name: string | null
+  new_email: string | null
+} {
+  const emailMatch = input.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/)
+  const new_email = emailMatch ? emailMatch[0] : null
 
-      // ✅ If finished → return
-      if (parsed.action === "finish") {
-        return NextResponse.json(parsed);
-      }
+  const nameMatch = input.match(/of\s+(.*?)\s+to/i)
+  const name = nameMatch ? nameMatch[1].trim() : null
 
-      // ✅ CALL MAKE WEBHOOK (TOOL EXECUTION)
-      const toolResponse = await fetch(process.env.MAKE_WEBHOOK_URL!, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(parsed),
-      });
+  return { name, new_email }
+}
 
-      let toolResult;
+function extractDeleteLeadData(input: string): { name: string | null } {
+  const match = input.match(/delete\s+lead\s+(.*)/i)
+  const name = match ? match[1].trim() : null
 
-      try {
-        toolResult = await toolResponse.json();
-      } catch {
-        toolResult = { message: "No JSON returned from tool" };
-      }
+  return { name }
+}
 
-      // ✅ ADD OBSERVATION BACK TO AI
-      messages.push({
-        role: "assistant",
-        content: JSON.stringify(parsed),
-      });
+function extractSendEmailData(input: string): {
+  name: string | null
+  message: string | null
+} {
+  const nameMatch = input.match(/to\s+(.*?)\s+saying/i)
+  const messageMatch = input.match(/saying\s+(.*)/i)
 
-      messages.push({
-        role: "user",
-        content: `Observation: ${JSON.stringify(toolResult)}`,
-      });
+  const name = nameMatch ? nameMatch[1].trim() : null
+  const message = messageMatch ? messageMatch[1].trim() : null
 
-      step++;
-    }
+  return { name, message }
+}
 
-    return NextResponse.json({
-      action: "finish",
-      reasoning: "Max steps reached",
-      step: MAX_STEPS,
-    });
+export async function POST(req: Request) {
+try {
+const body = await req.json()
+const userInput = String(body.goal ?? '')
 
-  } catch (error) {
-    console.error(error);
+const run_id = `run_${Date.now()}`
+const action = resolveActionFromGoal(userInput)
 
-    return NextResponse.json({
-      error: "Something went wrong",
-    });
-  }
+console.log("USER INPUT:", userInput)
+console.log("RESOLVED ACTION:", action)
+console.log("RUN_ID:", run_id)
+
+let payload: {
+  run_id: string
+  action: Action
+  input:
+    | { name: string | null; email: string | null; company: string | null }
+    | { name: string | null; new_email: string | null }
+    | { name: string | null }
+    | { name: string | null; message: string | null }
+    | string
+} = {
+  run_id,
+  action,
+  input: userInput,
+}
+
+if (action === 'create_lead') {
+  const { name, email, company } = extractLeadData(userInput)
+  payload.input = { name, email, company }
+} else if (action === 'update_email') {
+  const { name, new_email } = extractUpdateEmailData(userInput)
+  payload.input = { name, new_email }
+} else if (action === 'delete_lead') {
+  const { name } = extractDeleteLeadData(userInput)
+  payload.input = { name }
+} else if (action === 'send_email') {
+  const { name, message } = extractSendEmailData(userInput)
+  payload.input = { name, message }
+} else {
+  payload.input = userInput
+}
+
+console.log('Sending to webhook:', payload)
+
+const response = await fetch(process.env.MAKE_WEBHOOK_URL!, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify(payload),
+})
+
+const text = await response.text()
+
+console.log("MAKE RESPONSE STATUS:", response.status)
+console.log("MAKE RESPONSE BODY:", text)
+
+return Response.json({ run_id })
+
+} catch (err) {
+console.error("RUN AGENT ERROR:", err)
+return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
+}
 }
