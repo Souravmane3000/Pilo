@@ -26,7 +26,7 @@ function formatRelativeTime(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString()
 }
 
-export default function WorkflowHistory(): React.JSX.Element {
+export default function WorkflowHistory(): React.ReactNode {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [runs, setRuns] = useState<WorkflowRun[]>([])

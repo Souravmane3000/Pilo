@@ -1,12 +1,10 @@
 'use client'
 
-'use client'
-
 import React from 'react'
 import { usePilo } from '../context/PiloContext'
 import type { ExecutionMode } from '../lib/types'
 
-export default function ModeToggle(): React.JSX.Element {
+export default function ModeToggle(): React.ReactNode {
   const { mode, runStatus, setMode } = usePilo()
 
   const handleModeChange = (nextMode: ExecutionMode): void => {

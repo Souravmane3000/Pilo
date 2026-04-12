@@ -11,7 +11,7 @@ const EXAMPLE_GOALS: string[] = [
   'Get all new leads from last week',
 ]
 
-export default function ExampleGoals({ onSelect }: ExampleGoalsProps): React.JSX.Element {
+export default function ExampleGoals({ onSelect }: ExampleGoalsProps): React.ReactNode {
   return (
     <div className="flex flex-wrap gap-2">
       {EXAMPLE_GOALS.map((goal) => (

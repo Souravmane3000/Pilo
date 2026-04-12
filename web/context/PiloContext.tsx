@@ -1,6 +1,6 @@
 'use client'
 
-import {
+import React, {
   createContext,
   useCallback,
   useContext,
@@ -31,7 +31,7 @@ type PiloProviderProps = {
 
 const MODE_STORAGE_KEY = 'pilo_mode'
 
-export function PiloProvider({ children }: PiloProviderProps): JSX.Element {
+export function PiloProvider({ children }: PiloProviderProps): React.ReactNode {
   const [mode, setModeState] = useState<ExecutionMode>('demo')
   const [runStatus, setRunStatus] = useState<RunStatus>('idle')
   const [feed, setFeed] = useState<FeedItem[]>([])

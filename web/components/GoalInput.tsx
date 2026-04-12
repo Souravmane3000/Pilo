@@ -9,7 +9,7 @@ type GoalInputProps = {
   onRun: () => void
 }
 
-export default function GoalInput({ value, onChange, onRun }: GoalInputProps): React.JSX.Element {
+export default function GoalInput({ value, onChange, onRun }: GoalInputProps): React.ReactNode {
   const { runStatus } = usePilo()
   const [error, setError] = useState<string | null>(null)
 

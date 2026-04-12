@@ -35,7 +35,6 @@ export async function runAgentDemo(params: RunAgentDemoParams): Promise<void> {
     // 2) Append run_start immediately
     if (runStart) {
       appendFeedItem({
-        run_id: 'demo_run',
         step: 0,
         type: runStart.type,
         action: runStart.action ?? 'start',
@@ -53,7 +52,6 @@ export async function runAgentDemo(params: RunAgentDemoParams): Promise<void> {
       }
 
       appendFeedItem({
-        run_id: 'demo_run', // 👈 important (match live structure)
         step: step.step,
         type: step.type,
         action: step.action ?? 'processing',
@@ -65,7 +63,6 @@ export async function runAgentDemo(params: RunAgentDemoParams): Promise<void> {
     // 4) Append run_end then mark complete
     if (runEnd) {
       appendFeedItem({
-        run_id: 'demo_run',
         step: 999,
         type: runEnd.type,
         action: runEnd.action ?? 'finish',

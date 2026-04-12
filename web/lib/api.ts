@@ -82,18 +82,21 @@ export async function fetchLeads(): Promise<ApiResponse<Lead[]>> {
 
     const mappedLeads: Lead[] = (data ?? []).map((lead) => ({
       id: lead.id,
+      user_id: lead.user_id,
       name: lead.name,
       email: lead.email,
-      company: lead.company ?? null,
+      company: lead.company ?? '',
       status:
         lead.status === 'cold'
           ? 'new'
           : lead.status === 'contacted'
-          ? 'contacted'
-          : lead.status === 'qualified'
-          ? 'qualified'
-          : 'inactive',
+            ? 'contacted'
+            : lead.status === 'qualified'
+              ? 'qualified'
+              : 'inactive',
       last_contacted_at: lead.last_contacted_at ?? null,
+      notes: lead.notes ?? null,
+      created_at: lead.created_at,
     }))
 
     return { data: mappedLeads, error: null }
@@ -126,13 +129,15 @@ export async function fetchWorkflowRuns(): Promise<ApiResponse<WorkflowRun[]>> {
 
     const mappedRuns: WorkflowRun[] = (data ?? []).map((run) => ({
       id: run.id,
+      user_id: run.user_id,
       goal: run.input_prompt ?? 'No goal',
       status:
         run.status === 'success'
           ? 'completed'
           : run.status === 'failed'
-          ? 'failed'
-          : 'running',
+            ? 'failed'
+            : 'running',
+      steps_taken: run.steps_taken ?? 0,
       created_at: run.created_at,
     }))
 

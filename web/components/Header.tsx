@@ -4,7 +4,7 @@ import React from 'react'
 import ModeToggle from './ModeToggle'
 import { usePilo } from '../context/PiloContext'
 
-export default function Header(): React.JSX.Element {
+export default function Header(): React.ReactNode {
   const { user } = usePilo()
   const initial = user.name.charAt(0).toUpperCase()
 

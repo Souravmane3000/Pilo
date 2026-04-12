@@ -22,7 +22,7 @@ function formatTime(timestamp: string): string {
   return `${hours}:${minutes}:${seconds}`
 }
 
-export default function FeedItem({ item }: FeedItemProps): React.JSX.Element {
+export default function FeedItem({ item }: FeedItemProps): React.ReactNode {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {

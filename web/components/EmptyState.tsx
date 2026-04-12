@@ -1,3 +1,4 @@
+import React from 'react'
 import type { LucideIcon } from 'lucide-react'
 
 type EmptyStateProps = {
@@ -12,7 +13,7 @@ export default function EmptyState({
   title,
   description,
   action,
-}: EmptyStateProps): JSX.Element {
+}: EmptyStateProps): React.ReactNode {
   return (
     <div className="flex min-h-[220px] w-full flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-zinc-900 px-6 py-8 text-center">
       <Icon className="mb-3 h-8 w-8 text-zinc-500" aria-hidden="true" />

@@ -11,7 +11,7 @@ type ExecutionFeedProps = {
   runStatus: RunStatus
 }
 
-export default function ExecutionFeed({ feed, runStatus }: ExecutionFeedProps): React.JSX.Element {
+export default function ExecutionFeed({ feed, runStatus }: ExecutionFeedProps): React.ReactNode {
   const bottomRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {

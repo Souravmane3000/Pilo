@@ -7,7 +7,7 @@ import StatusBadge from './StatusBadge'
 import { fetchLeads } from '../lib/api'
 import type { Lead } from '../lib/types'
 
-export default function LeadsTable(): React.JSX.Element {
+export default function LeadsTable(): React.ReactNode {
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
   const [leads, setLeads] = useState<Lead[]>([])

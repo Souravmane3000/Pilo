@@ -11,7 +11,7 @@ import { usePilo } from '../../context/PiloContext'
 import { runAgent } from '../../lib/runAgent'
 import type { RunStatus } from '../../lib/types'
 
-export default function DashboardPage(): React.JSX.Element {
+export default function DashboardPage(): React.ReactNode {
   const [goal, setGoal] = useState<string>('')
   const cancelRef = useRef<boolean>(false)
 

@@ -1,3 +1,5 @@
+import React from 'react'
+
 type StatusBadgeProps = {
   status: string
   className?: string
@@ -33,7 +35,7 @@ const DEFAULT_STYLE: StatusConfig = {
   className: 'border-zinc-700 bg-zinc-800 text-zinc-400',
 }
 
-export default function StatusBadge({ status, className }: StatusBadgeProps): JSX.Element {
+export default function StatusBadge({ status, className }: StatusBadgeProps): React.ReactNode {
   const config = STATUS_STYLES[status] ?? DEFAULT_STYLE
   const composedClassName = [
     'inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-all duration-200',
