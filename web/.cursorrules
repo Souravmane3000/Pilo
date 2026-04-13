@@ -1,0 +1,234 @@
+## ═══════════════════════════════════════════════════
+
+## Pilo — AI Automation Agent  |  .cursorrules V4.1 (Aligned + Fixed)
+
+## Stack : Next.js 14 App Router · TypeScript · Tailwind
+
+## shadcn/ui · Supabase · Make.com · Resend
+
+## Purpose: Fully aligned with Master Prompt V5.1 (no drift, no conflicts)
+
+## ═══════════════════════════════════════════════════
+
+---
+
+## 🟢 Frontend Build Mode (ACTIVE PHASE)
+
+* Current phase: Frontend scaffolding
+* Backend rules (auth, rate limiting, schemas, webhook execution) are NOT enforced yet
+* Use mock data and runAgentDemo for all flows
+* Do NOT implement Supabase Auth or Make.com calls
+* Use MOCK_USER instead of real session
+
+---
+
+## 🔴 Output Rules (ACTIVE — ALL PHASES)
+
+* Generate ONLY ONE file at a time
+* After each file:
+
+  * Verify correctness
+  * Ask: "Ready to proceed?"
+* Do NOT continue without explicit confirmation
+* Do NOT create files outside the defined structure
+
+---
+
+## Project context
+
+* Pilo is an AI-powered automation agent for small business owners.
+* Agent uses a ReAct loop: max 5 steps.
+* All real tool calls go through Make.com webhooks (backend phase only).
+
+---
+
+## 🔴 Action registry — single source of truth
+
+AllowedActions (MUST match WebhookPayload exactly):
+
+* "Send_Email"
+* "Update_Email"
+* "Create_Leads"
+* "Get_Leads"
+* "Delete_Leads"
+
+Rules:
+
+* This list MUST exactly match WebhookPayload in /lib/types.ts
+* Never redefine or extend this list anywhere else
+
+Notes:
+
+* "Fallback" is backend-only (Make.com internal)
+* Frontend MUST NEVER send "Fallback"
+
+---
+
+## TypeScript rules
+
+* Never use `any`
+* No implicit `any` in parameters or variables
+* Prefer `type` over `interface`
+* All exported functions must have return types
+* No non-null assertions
+
+---
+
+## Error handling rules
+
+* console.log / console.warn allowed ONLY for debugging
+* NEVER use console logs as a substitute for UI error handling
+* All user-facing errors MUST be rendered in UI (EmptyState, Toast, etc.)
+
+---
+
+## 🔴 Single Source of Truth Rule
+
+* Types, actions, and API contracts must have ONE source of truth
+* Never duplicate or redefine them across files
+
+---
+
+## 🔴 Agent loop rules (frontend phase)
+
+* Use runAgentDemo.ts for simulation
+* Max 5 steps
+* Strict sequential execution
+* No parallel execution
+
+### Run cancellation (MANDATORY)
+
+* Use cancelRef (useRef<boolean>)
+* Set cancelRef.current = true before starting new run
+* Reset to false for new run
+* Check cancelRef.current BEFORE every appendFeedItem call
+* If true → stop execution immediately
+
+---
+
+## 🔴 Demo mode rules
+
+* Demo mode = default
+* No external API calls
+* No OpenAI calls
+* No Make.com calls
+* Use deterministic mock responses
+
+### buildDemoFeed placement (MANDATORY)
+
+* buildDemoFeed() MUST be defined in /lib/mockData.ts
+* It MUST be exported from mockData.ts
+* runAgentDemo.ts MUST import it from mockData
+* Never redefine buildDemoFeed elsewhere
+
+---
+
+## 🔴 API rules (frontend phase)
+
+* All API logic lives in /lib/api.ts
+* No direct fetch calls inside components
+
+### ApiResponse enforcement
+
+* ALL functions in /lib/api.ts MUST return ApiResponse<T>
+* Never return raw data
+* Always return { data, error }
+
+---
+
+## 🔴 PiloContext rules
+
+* PiloContext owns ALL global state
+* PiloContext owns ALL localStorage interactions for mode ('pilo_mode')
+
+### Mode handling
+
+* ModeToggle MUST call setMode() from context
+* ModeToggle MUST NOT access localStorage directly
+
+---
+
+## Frontend rules (STRICT)
+
+* Use Tailwind only
+
+* Use shadcn/ui components
+
+* No custom CSS files
+
+* Components → /components
+
+* Pages → /app
+
+* Utilities → /lib
+
+* Do NOT install new npm packages
+
+* UI must strictly follow prompt design system
+
+* Do NOT invent layouts or styles
+
+---
+
+## 🔴 Feed integrity rules
+
+* Feed must maintain strict chronological order
+* No duplicate or out-of-order items
+
+---
+
+## 🔴 Deterministic UI rule
+
+* UI must strictly follow prompt specs
+* No creative deviations allowed
+
+---
+
+## Logging rules
+
+* console.log allowed temporarily during development
+* Remove before production
+
+---
+
+## Code quality rules
+
+* Target 150–250 lines per file (not strict)
+* Extract logic only if reused 3+ times
+* Avoid overengineering
+
+---
+
+## TODO rules
+
+* TODO comments allowed in frontend scaffolding
+* Replace with GitHub issues before production
+
+---
+
+## Environment rules
+
+* Use mock data in frontend phase
+* No environment keys required yet
+
+---
+
+## Git rules
+
+* Commit prefixes: feat:, fix:, chore:, docs:
+* Never commit .env files
+
+---
+
+## ✅ Alignment Guarantee
+
+This rulebook is explicitly aligned with:
+
+* Master Prompt V5.1
+* Frontend-first build phase
+
+No conflicting instructions exist between prompt and rules.
+
+---
+
+## END OF RULES
