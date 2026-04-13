@@ -3,9 +3,11 @@ import { NextResponse } from 'next/server'
 type Action = 'get_leads' | 'create_lead' | 'update_email' | 'delete_lead' | 'send_email'
 
 function resolveActionFromGoal(goal: string): Action {
-  const input = goal.toLowerCase()
+  const input = goal.toLowerCase().trim()
 
   let action: Action = 'get_leads'
+
+  // ✅ HIGH PRIORITY ACTIONS FIRST
 
   if (
     input.includes('create') ||
@@ -13,22 +15,40 @@ function resolveActionFromGoal(goal: string): Action {
     input.includes('new lead')
   ) {
     action = 'create_lead'
-  } else if (input.includes('update email') || input.includes('change email')) {
+  }
+
+  else if (
+    input.includes('update email') ||
+    input.includes('change email')
+  ) {
     action = 'update_email'
-  } else if (input.includes('delete') || input.includes('remove lead')) {
+  }
+
+  else if (
+    input.includes('delete') ||
+    input.includes('remove lead')
+  ) {
     action = 'delete_lead'
-  } else if (
+  }
+
+  else if (
     input.includes('get leads') ||
     input.includes('show leads') ||
     input.includes('list leads')
   ) {
     action = 'get_leads'
-  } else if (input.includes('send email') || input.includes('mail to')) {
+  }
+
+  // ✅ STRICT SEND EMAIL (VERY IMPORTANT)
+  else if (
+    input.startsWith('send email') ||
+    input.includes('send email to') ||
+    input.includes('send mail to')
+  ) {
     action = 'send_email'
   }
 
   console.log('Resolved action:', action)
-
   return action
 }
 
