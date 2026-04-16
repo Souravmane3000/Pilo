@@ -1,168 +1,192 @@
+import OpenAI from 'openai'
 import { NextResponse } from 'next/server'
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+})
 
 type Action = 'get_leads' | 'create_lead' | 'update_email' | 'delete_lead' | 'send_email'
 
-function resolveActionFromGoal(goal: string): Action {
-  const input = goal.toLowerCase().trim()
+const VALID_ACTIONS: Action[] = [
+  'get_leads',
+  'create_lead',
+  'update_email',
+  'delete_lead',
+  'send_email',
+]
 
-  let action: Action = 'get_leads'
-
-  // ✅ HIGH PRIORITY ACTIONS FIRST
-
-  if (
-    input.includes('create') ||
-    input.includes('add lead') ||
-    input.includes('new lead')
-  ) {
-    action = 'create_lead'
-  }
-
-  else if (
-    input.includes('update email') ||
-    input.includes('change email')
-  ) {
-    action = 'update_email'
-  }
-
-  else if (
-    input.includes('delete') ||
-    input.includes('remove lead')
-  ) {
-    action = 'delete_lead'
-  }
-
-  else if (
-    input.includes('get leads') ||
-    input.includes('show leads') ||
-    input.includes('list leads')
-  ) {
-    action = 'get_leads'
-  }
-
-  // ✅ STRICT SEND EMAIL (VERY IMPORTANT)
-  else if (
-    input.startsWith('send email') ||
-    input.includes('send email to') ||
-    input.includes('send mail to')
-  ) {
-    action = 'send_email'
-  }
-
-  console.log('Resolved action:', action)
-  return action
+function isValidAction(a: unknown): a is Action {
+  return typeof a === 'string' && VALID_ACTIONS.includes(a as Action)
 }
 
-function extractLeadData(input: string): {
+type ParsedIntent = {
+  action?: unknown
   name: string | null
   email: string | null
   company: string | null
-} {
-  const nameMatch = input.match(/name:\s*([^,]+)/i)
-  const emailMatch = input.match(/email:\s*([^,]+)/i)
-  const companyMatch = input.match(/company:\s*([^,]+)/i)
-
-  const name = nameMatch ? nameMatch[1].trim() : null
-  const email = emailMatch ? emailMatch[1].trim() : null
-  const company = companyMatch ? companyMatch[1].trim() : null
-
-  return { name, email, company }
-}
-
-function extractUpdateEmailData(input: string): {
-  name: string | null
-  new_email: string | null
-} {
-  const emailMatch = input.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-z]{2,}/)
-  const new_email = emailMatch ? emailMatch[0] : null
-
-  const nameMatch = input.match(/of\s+(.*?)\s+to/i)
-  const name = nameMatch ? nameMatch[1].trim() : null
-
-  return { name, new_email }
-}
-
-function extractDeleteLeadData(input: string): { name: string | null } {
-  const match = input.match(/delete\s+lead\s+(.*)/i)
-  const name = match ? match[1].trim() : null
-
-  return { name }
-}
-
-function extractSendEmailData(input: string): {
-  name: string | null
   message: string | null
-} {
-  const nameMatch = input.match(/to\s+(.*?)\s+saying/i)
-  const messageMatch = input.match(/saying\s+(.*)/i)
+}
 
-  const name = nameMatch ? nameMatch[1].trim() : null
-  const message = messageMatch ? messageMatch[1].trim() : null
+type UpdateEmailInput = Omit<ParsedIntent, 'email'> & { new_email: string | null }
 
-  return { name, message }
+async function parseWithAI(input: string): Promise<ParsedIntent | null> {
+  const response = await openai.chat.completions.create({
+    model: 'gpt-4.1-mini',
+    messages: [
+      {
+        role: 'system',
+        content: `
+You are an AI CRM assistant.
+
+Extract structured data from the user input.
+
+Return ONLY JSON in this format:
+
+{
+  "action": "get_leads | create_lead | update_email | delete_lead | send_email",
+  "name": string | null,
+  "email": string | null,
+  "company": string | null,
+  "message": string | null
+}
+
+Rules:
+- Detect intent correctly
+- Extract names properly
+- Extract valid emails
+- If not present → null
+- No explanation, only JSON
+        `,
+      },
+      {
+        role: 'user',
+        content: input,
+      },
+    ],
+    temperature: 0,
+  })
+
+  const text = response.choices[0].message.content || '{}'
+
+  try {
+    return JSON.parse(text) as ParsedIntent
+  } catch {
+    return null
+  }
 }
 
 export async function POST(req: Request) {
-try {
-const body = await req.json()
-const userInput = String(body.goal ?? '')
+  let action: Action | null = null
+  try {
+    const body = await req.json()
+    const { goal, user_id } = body
+    const userInput = String(goal ?? '')
+    if (!user_id || user_id === '') {
+      console.warn('Missing user_id, using demo UUID')
+    }
 
-const run_id = `run_${Date.now()}`
-const action = resolveActionFromGoal(userInput)
+    const run_id = `run_${Date.now()}`
 
-console.log("USER INPUT:", userInput)
-console.log("RESOLVED ACTION:", action)
-console.log("RUN_ID:", run_id)
+    const parsed = await parseWithAI(userInput)
 
-let payload: {
-  run_id: string
-  action: Action
-  input:
-    | { name: string | null; email: string | null; company: string | null }
-    | { name: string | null; new_email: string | null }
-    | { name: string | null }
-    | { name: string | null; message: string | null }
-    | string
-} = {
-  run_id,
-  action,
-  input: userInput,
-}
+    if (!parsed) {
+      return NextResponse.json(
+        { success: false, error: 'Parsing failed', action },
+        { status: 400 }
+      )
+    }
 
-if (action === 'create_lead') {
-  const { name, email, company } = extractLeadData(userInput)
-  payload.input = { name, email, company }
-} else if (action === 'update_email') {
-  const { name, new_email } = extractUpdateEmailData(userInput)
-  payload.input = { name, new_email }
-} else if (action === 'delete_lead') {
-  const { name } = extractDeleteLeadData(userInput)
-  payload.input = { name }
-} else if (action === 'send_email') {
-  const { name, message } = extractSendEmailData(userInput)
-  payload.input = { name, message }
-} else {
-  payload.input = userInput
-}
+    const parsedAction = parsed.action
+    if (!isValidAction(parsedAction)) {
+      return NextResponse.json(
+        { success: false, error: 'Parsing failed', action },
+        { status: 400 }
+      )
+    }
+    action = parsedAction
 
-console.log('Sending to webhook:', payload)
+    let input: ParsedIntent | UpdateEmailInput
+    if (action === 'update_email') {
+      const { email, ...rest } = parsed
+      input = { ...rest, new_email: email }
+    } else {
+      input = parsed
+    }
 
-const response = await fetch(process.env.MAKE_WEBHOOK_URL!, {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(payload),
-})
+    const details: Record<string, string[]> = {}
+    if (action === 'create_lead') {
+      const missing: string[] = []
+      if (!parsed.name) missing.push('name')
+      if (!parsed.email) missing.push('email')
+      if (missing.length > 0) details.create_lead = missing
+    } else if (action === 'update_email') {
+      const updateInput = input as UpdateEmailInput
+      const missing: string[] = []
+      if (!updateInput.name) missing.push('name')
+      if (!updateInput.new_email) missing.push('new_email')
+      if (missing.length > 0) details.update_email = missing
+    } else if (action === 'delete_lead') {
+      const missing: string[] = []
+      if (!parsed.name) missing.push('name')
+      if (missing.length > 0) details.delete_lead = missing
+    } else if (action === 'send_email') {
+      const missing: string[] = []
+      if (!parsed.name) missing.push('name')
+      if (!parsed.message) missing.push('message')
+      if (missing.length > 0) details.send_email = missing
+    }
 
-const text = await response.text()
+    if (Object.keys(details).length > 0) {
+      console.log('VALIDATION FAILED:', details)
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Missing required fields',
+          action,
+          details,
+        },
+        { status: 400 }
+      )
+    }
 
-console.log("MAKE RESPONSE STATUS:", response.status)
-console.log("MAKE RESPONSE BODY:", text)
+    const payload = {
+      run_id,
+      action,
+      user_id: String(user_id ?? ''),
+      input,
+    }
 
-return Response.json({ run_id })
+    console.log('USER INPUT:', userInput)
+    console.log('RESOLVED ACTION:', action)
+    console.log('RUN_ID:', run_id)
+    console.log('Sending to webhook:', payload)
 
-} catch (err) {
-console.error("RUN AGENT ERROR:", err)
-return NextResponse.json({ error: 'Something went wrong' }, { status: 500 })
-}
+    const response = await fetch(process.env.MAKE_WEBHOOK_URL!, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const text = await response.text()
+
+    console.log('MAKE RESPONSE STATUS:', response.status)
+    console.log('MAKE RESPONSE BODY:', text)
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: 'Webhook request failed', action },
+        { status: 502 }
+      )
+    }
+
+    return NextResponse.json({ success: true, run_id, action })
+  } catch (err) {
+    console.error('RUN AGENT ERROR:', err)
+    return NextResponse.json(
+      { success: false, error: 'Something went wrong', action },
+      { status: 500 }
+    )
+  }
 }

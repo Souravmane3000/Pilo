@@ -12,10 +12,10 @@ type StatusConfig = {
 }
 
 const STATUS_STYLES: Record<string, StatusConfig> = {
-  new: { label: 'New', className: 'border-zinc-700 bg-zinc-800 text-zinc-300' },
+  new: { label: 'New', className: 'border-white/10 bg-white/5 text-zinc-300' },
   contacted: { label: 'Contacted', className: 'border-blue-500/40 bg-blue-500/10 text-blue-400' },
   qualified: { label: 'Qualified', className: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' },
-  inactive: { label: 'Inactive', className: 'border-amber-500/40 bg-amber-500/10 text-amber-400' },
+  inactive: { label: 'Inactive', className: 'border-yellow-500/30 bg-yellow-500/10 text-yellow-400' },
   pending: { label: 'Pending', className: 'border-amber-500/40 bg-amber-500/10 text-amber-400' },
   running: {
     label: 'Running',
@@ -25,14 +25,14 @@ const STATUS_STYLES: Record<string, StatusConfig> = {
   completed: { label: 'Completed', className: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' },
   failed: { label: 'Failed', className: 'border-red-500/40 bg-red-500/10 text-red-400' },
   partial_success: { label: 'Partial', className: 'border-amber-500/40 bg-amber-500/10 text-amber-400' },
-  thinking: { label: 'Thinking', className: 'border-zinc-700 bg-zinc-800 text-zinc-400 italic' },
+  thinking: { label: 'Thinking', className: 'border-white/10 bg-white/5 text-zinc-400 italic' },
   executing: { label: 'Executing', className: 'border-amber-500/40 bg-amber-500/10 text-amber-400' },
   success: { label: 'Success', className: 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400' },
 }
 
 const DEFAULT_STYLE: StatusConfig = {
   label: 'Unknown',
-  className: 'border-zinc-700 bg-zinc-800 text-zinc-400',
+  className: 'border-white/10 bg-white/5 text-zinc-400',
 }
 
 export default function StatusBadge({ status, className }: StatusBadgeProps): React.ReactNode {
