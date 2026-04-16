@@ -7,7 +7,7 @@ import ProductPreview from "@/components/landing/ProductPreview";
 
 export default function Home() {
   return (
-    <div id="app-content" className="min-h-screen bg-[#0B0F14] font-sans text-white">
+    <div id="app-content" className="flex min-h-screen flex-col overflow-y-auto bg-[#0B0F14] font-sans text-white">
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top,rgba(16,185,129,0.08),transparent_40%),radial-gradient(circle_at_80%_25%,rgba(56,189,248,0.08),transparent_35%)]" />
       <div className="pointer-events-none fixed inset-0 -z-10 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px] opacity-20" />
 
