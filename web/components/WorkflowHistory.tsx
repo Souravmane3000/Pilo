@@ -58,10 +58,10 @@ export default function WorkflowHistory(): React.ReactNode {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+      <div className="rounded-2xl border border-white/5 bg-[#020617] p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-xl transition-all duration-300 hover:border-green-500/20">
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-10 w-full animate-pulse rounded-lg bg-zinc-800" />
+            <div key={i} className="h-10 w-full animate-pulse rounded-lg bg-zinc-900" />
           ))}
         </div>
       </div>
@@ -70,7 +70,7 @@ export default function WorkflowHistory(): React.ReactNode {
 
   if (error) {
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+      <div className="rounded-2xl border border-white/5 bg-[#020617] p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-xl transition-all duration-300 hover:border-green-500/20">
         <EmptyState
           icon={AlertCircle}
           title="Couldn't load history"
@@ -83,20 +83,20 @@ export default function WorkflowHistory(): React.ReactNode {
 
   if (runs.length === 0) {
     return (
-      <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+      <div className="rounded-2xl border border-white/5 bg-[#020617] p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-xl transition-all duration-300 hover:border-green-500/20">
         <EmptyState
           icon={History}
-          title="No runs yet"
-          description="Completed runs will appear here."
+          title="No activity yet"
+          description="Run a command to see AI in action."
         />
       </div>
     )
   }
 
   return (
-    <div className="rounded-2xl border border-zinc-800 bg-zinc-900 p-4">
+    <div className="rounded-2xl border border-white/5 bg-[#020617] p-4 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-xl transition-all duration-300 hover:border-green-500/20">
       {runs.map((run) => (
-        <div key={run.id} className="flex items-center justify-between border-b border-zinc-800/60 py-2">
+        <div key={run.id} className="flex items-center justify-between border-b border-white/5 py-2 transition-colors duration-200 hover:bg-white/5">
           <div>
             <p className="text-sm text-zinc-100">{run.goal}</p>
             <p className="text-xs text-zinc-400">{formatRelativeTime(run.created_at)}</p>

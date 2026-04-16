@@ -1,13 +1,16 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
+import AuthModal from '@/components/AuthModal'
 import { usePilo } from '../context/PiloContext'
+import { supabase } from '../lib/supabaseClient'
 import type { ExecutionMode } from '../lib/types'
 
 export default function ModeToggle(): React.ReactNode {
   const { mode, runStatus, setMode } = usePilo()
+  const [showAuth, setShowAuth] = useState(false)
 
-  const handleModeChange = (nextMode: ExecutionMode): void => {
+  const handleModeChange = async (nextMode: ExecutionMode): Promise<void> => {
     if (nextMode === mode) {
       return
     }
@@ -21,29 +24,44 @@ export default function ModeToggle(): React.ReactNode {
       }
     }
 
+    if (nextMode === 'live') {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) {
+        setShowAuth(true)
+        return
+      }
+    }
+
     setMode(nextMode)
   }
 
   return (
-    <div className="inline-flex items-center rounded-lg border border-zinc-700 bg-zinc-900">
-      <button
-        type="button"
-        onClick={() => handleModeChange('demo')}
-        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
-          mode === 'demo' ? 'bg-blue-500 text-white' : 'text-zinc-400 hover:text-zinc-100'
-        }`}
-      >
-        Demo
-      </button>
-      <button
-        type="button"
-        onClick={() => handleModeChange('live')}
-        className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-all duration-200 ${
-          mode === 'live' ? 'bg-emerald-500 text-zinc-950' : 'text-zinc-400 hover:text-zinc-100'
-        }`}
-      >
-        Live
-      </button>
-    </div>
+    <>
+      <div className="inline-flex items-center rounded-xl border border-white/5 bg-[#020617] p-1 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-xl">
+        <button
+          type="button"
+          onClick={() => void handleModeChange('demo')}
+          className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-all duration-300 ${
+            mode === 'demo'
+              ? 'border-green-400/30 bg-green-500/10 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.18)]'
+              : 'border-transparent bg-transparent text-gray-400 hover:text-zinc-100'
+          }`}
+        >
+          Demo
+        </button>
+        <button
+          type="button"
+          onClick={() => void handleModeChange('live')}
+          className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-all duration-300 ${
+            mode === 'live'
+              ? 'border-green-400/30 bg-green-500/10 text-green-400 shadow-[0_0_10px_rgba(34,197,94,0.18)]'
+              : 'border-transparent bg-transparent text-gray-400 hover:text-zinc-100'
+          }`}
+        >
+          Live
+        </button>
+      </div>
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+    </>
   )
 }

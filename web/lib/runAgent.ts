@@ -21,7 +21,7 @@ export async function runAgent(params: RunAgentParams): Promise<void> {
       return
     }
 
-    await runAgentLive(sharedParams)
+    await runAgentLive({ mode, ...sharedParams })
   } catch {
     sharedParams.onComplete('failed')
   }

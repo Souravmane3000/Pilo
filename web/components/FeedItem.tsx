@@ -7,6 +7,7 @@ import type { FeedItem } from '../lib/types'
 
 type FeedItemProps = {
   item: FeedItem
+  messageOverride?: string
 }
 
 function formatTime(timestamp: string): string {
@@ -22,7 +23,7 @@ function formatTime(timestamp: string): string {
   return `${hours}:${minutes}:${seconds}`
 }
 
-export default function FeedItem({ item }: FeedItemProps): React.ReactNode {
+export default function FeedItem({ item, messageOverride }: FeedItemProps): React.ReactNode {
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -53,21 +54,26 @@ export default function FeedItem({ item }: FeedItemProps): React.ReactNode {
 
   let Icon = Brain
   let iconColorClass = 'text-zinc-400'
-  let messageClassName = 'font-mono text-sm text-zinc-100'
+  let messageClassName = 'font-mono text-sm text-gray-300'
+  let cardClassName = 'rounded-xl border border-white/5 bg-[#020617] p-3 shadow-[0_0_0_1px_rgba(255,255,255,0.02)]'
 
   if (item.type === 'executing') {
     Icon = Settings
-    iconColorClass = 'text-yellow-400'
+    iconColorClass = 'text-green-400'
+    cardClassName =
+      'rounded-xl border border-green-500/20 bg-[#020617] p-3 shadow-[0_0_10px_rgba(34,197,94,0.2)]'
   } else if (item.type === 'success') {
     Icon = CheckCircle
     iconColorClass = 'text-emerald-400'
+    cardClassName =
+      'rounded-xl border border-emerald-500/20 bg-[#020617] p-3 shadow-[0_0_10px_rgba(34,197,94,0.14)]'
   } else if (item.type === 'failed') {
     Icon = XCircle
     iconColorClass = 'text-red-400'
   }
 
   if (item.type === 'thinking') {
-    messageClassName = 'font-mono text-sm italic text-zinc-400'
+    messageClassName = 'font-mono text-sm italic text-gray-300'
   }
 
   return (
@@ -80,14 +86,14 @@ export default function FeedItem({ item }: FeedItemProps): React.ReactNode {
         <Icon className="h-5 w-5" aria-hidden="true" />
       </div>
 
-      <div className="flex-1 space-y-1">
+      <div className={`flex-1 space-y-1 ${cardClassName}`}>
         <div className="flex items-center justify-between text-xs text-zinc-400">
           <span>
             Step {item.step} · {time}
           </span>
           <StatusBadge status={item.action} />
         </div>
-        <p className={messageClassName}>{item.message}</p>
+        <p className={messageClassName}>{messageOverride ?? item.message}</p>
       </div>
     </div>
   )

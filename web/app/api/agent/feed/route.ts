@@ -1,6 +1,51 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+function toActionKey(action: unknown): string {
+  if (typeof action !== 'string') return ''
+  return action.trim().toLowerCase()
+}
+
+function getNameFromLog(log: Record<string, unknown>): string | null {
+  if (typeof log.name === 'string' && log.name.trim().length > 0) {
+    return log.name.trim()
+  }
+
+  if (log.input && typeof log.input === 'object') {
+    const input = log.input as Record<string, unknown>
+    if (typeof input.name === 'string' && input.name.trim().length > 0) {
+      return input.name.trim()
+    }
+  }
+
+  return null
+}
+
+function toFriendlyMessage(action: unknown, name: string | null, fallback: unknown): string {
+  const actionKey = toActionKey(action)
+
+  if (actionKey === 'create_lead') {
+    return 'Creating a new lead...'
+  }
+  if (actionKey === 'update_email') {
+    return name ? `Updating ${name}'s email...` : 'Updating email...'
+  }
+  if (actionKey === 'delete_lead') {
+    return name ? `Deleting ${name}'s lead...` : 'Deleting lead...'
+  }
+  if (actionKey === 'send_email') {
+    return name ? `Sending email to ${name}...` : 'Sending email...'
+  }
+  if (actionKey === 'get_leads') {
+    return 'Fetching leads...'
+  }
+
+  if (typeof fallback === 'string' && fallback.trim().length > 0) {
+    return fallback
+  }
+  return 'Working on your request...'
+}
+
 export async function GET(req: Request) {
   console.log("🔥 FEED API HIT")
 
@@ -21,7 +66,7 @@ export async function GET(req: Request) {
         {
           step: 1,
           type: 'thinking',
-          message: 'Analyzing goal...',
+          message: 'Fetching leads...',
         },
         {
           step: 2,
@@ -31,7 +76,7 @@ export async function GET(req: Request) {
         {
           step: 3,
           type: 'success',
-          message: 'Done',
+          message: 'Fetching leads...',
         },
       ]
 
@@ -64,7 +109,7 @@ export async function GET(req: Request) {
       (data || []).map(log => ({
         step: log.step,
         type: log.type,
-        message: log.message,
+        message: toFriendlyMessage(log.action, getNameFromLog(log), log.message),
       }))
     )
 

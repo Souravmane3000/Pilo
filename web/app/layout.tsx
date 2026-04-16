@@ -26,7 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${ibmPlexMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${ibmPlexMono.variable} overflow-hidden antialiased`}>
         <PiloProvider>
           {/* TODO: Add Supabase Auth provider here */}
           {children}
