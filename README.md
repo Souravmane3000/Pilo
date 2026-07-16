@@ -134,7 +134,7 @@ Returns execution steps for a given run. Poll this endpoint after calling `/api/
 ### Setup
 
 ```bash
-git clone https://github.com/your-username/pilo.git
+git clone https://github.com/Souravmane3000/pilo.git
 cd pilo/web
 npm install
 cp .env.example .env.local
